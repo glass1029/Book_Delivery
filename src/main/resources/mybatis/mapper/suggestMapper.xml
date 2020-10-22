@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.SuggestDAO">
+    <!--건의사항 데이터 조회-->
+    <select id="getSuggestList" resultType="suggestVO" parameterType="suggestVO">
+        SELECT * FROM (
+        SELECT ROW_NUMBER() OVER (ORDER BY S.SUGGEST_ID DESC) CNTPERPAGE, S.SUGGEST_ID, S.CATEGORY, S.TITLE,
+            S.MEMBER_ID, S.CONTENT, TO_CHAR(S.REGDATE, 'YYYY.MM.DD HH24:MI') AS REGDATE, S.HIT, M.NAME
+        FROM SUGGEST S, MEMBER M
+        WHERE S.MEMBER_ID = M.MEMBER_ID
+        <choose>
+            <when test="searchCondition == 'category'">
+                AND S.CATEGORY LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'title'">
+                AND S.TITLE LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'content'">
+                AND S.CONTENT LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ) WHERE CNTPERPAGE BETWEEN #{startIndex}+1  AND (#{startIndex} + #{cntPerPage})
+    </select>
+
+    <!--건의사항 데이터 수-->
+    <select id="getSuggestCount" resultType="java.lang.Integer" parameterType="suggestVO">
+        SELECT COUNT(*) FROM SUGGEST
+        <choose>
+            <when test="searchCondition == 'category'">
+                WHERE CATEGORY LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'title'">
+                WHERE TITLE LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'content'">
+                WHERE CONTENT LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ORDER BY SUGGEST_ID
+    </select>
+
+    <!--건의사항 게시글 상세보기-->
+    <select id="getSuggestOne" resultType="suggestVO" parameterType="suggestVO">
+        SELECT S.SUGGEST_ID, S.CATEGORY, S.TITLE, M.NAME, S.CONTENT, TO_CHAR(S.REGDATE, 'YYYY.MM.DD HH24:MI') AS REGDATE, S.HIT
+        FROM SUGGEST S, MEMBER M
+        WHERE S.MEMBER_ID = M.MEMBER_ID
+        AND S.SUGGEST_ID = #{suggest_id}
+    </select>
+
+    <!--건의사항 조회수 증가-->
+    <update id="updateSuggestHit" parameterType="suggestVO">
+        UPDATE SUGGEST SET HIT = HIT+1 WHERE SUGGEST_ID = #{suggest_id}
+    </update>
+
+    <!--건의사항 게시글 댓글 조회-->
+    <select id="getAnswerList" resultType="answerVO" parameterType="suggestVO">
+        SELECT A.ANSWER_ID, A.SUGGEST_ID, A.CONTENT, A.REGDATE, M.NAME
+        FROM ANSWER A, MEMBER M
+        WHERE A.MEMBER_ID = M.MEMBER_ID
+        AND A.SUGGEST_ID = #{suggest_id}
+        ORDER BY A.ANSWER_ID DESC
+    </select>
+
+    <!--건의사항 게시글 댓글 입력-->
+    <insert id="insertAnswer" parameterType="suggestVO">
+        INSERT INTO ANSWER (ANSWER_ID, SUGGEST_ID, MEMBER_ID, CONTENT, REGDATE)
+        VALUES(ANSWER_SEQ.NEXTVAL, #{suggest_id}, 1, #{content}, SYSDATE)
+    </insert>
+
+    <!--건의사항 게시글 댓글 삭제-->
+    <delete id="deleteAnswer" parameterType="answerVO">
+        DELETE FROM ANSWER WHERE ANSWER_ID = #{answer_id}
+    </delete>
+
+    <!--건의사항 글 작성-->
+    <insert id="insertSuggest" parameterType="suggestVO">
+        INSERT INTO SUGGEST (SUGGEST_ID, CATEGORY, TITLE, MEMBER_ID, CONTENT, REGDATE, HIT)
+		VALUES(SUGGEST_SEQ.NEXTVAL, #{category}, #{title}, #{member_id}, #{content}, SYSDATE, 0)
+    </insert>
+
+    <!--건의사항 글 수정-->
+    <update id="updateSuggest" parameterType="suggestVO">
+        UPDATE SUGGEST SET CATEGORY = #{category}, TITLE = #{title}, CONTENT = #{content}
+        WHERE SUGGEST_ID = #{suggest_id}
+    </update>
+
+    <!--건의사항 글 삭제-->
+    <delete id="deleteSuggest" parameterType="suggestVO">
+        DELETE FROM SUGGEST WHERE SUGGEST_ID = #{suggest_id}
+    </delete>
+</mapper>

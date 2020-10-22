@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.MoveBooksDAO">
+
+    <!--도서 삭제-->
+    <select id="getBooksList" resultType="BooksVO" parameterType="BooksVO">
+        SELECT * FROM BOOKS
+    </select>
+    <delete id="deleteBook" parameterType="BooksVO">
+        DELETE BOOKS
+        WHERE BOOK_ID=#{book_id}
+    </delete>
+    <insert id="insertBook" parameterType="BooksVO">
+        INSERT INTO BOOKS (BOOK_ID, BOOK_NAME, WRITER, PUBLISHER)
+        VALUES (BOOKS_SEQ.NEXTVAL, #{book_name}, #{writer}, #{publisher})
+    </insert>
+</mapper>

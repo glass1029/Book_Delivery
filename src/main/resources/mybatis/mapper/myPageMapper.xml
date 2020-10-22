@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.MyPageDAO">
+
+    <!-- 내가 대여한 도서 조회 (로그인 받고나서 멤버아이디 #{member_id} 바꾸기~!~!!!-->
+    <select id="getMyRentalList" resultType="rentalVO" parameterType="rentalVO">
+        SELECT TO_CHAR(R.RENTAL_DATE,'YYYY-MM-DD') AS RENTAL_DATE,
+                R.RETURN_DEADLINE,
+                TO_CHAR(R.RETURN_DATE,'YYYY-MM-DD') AS RETURN_DATE,
+                R.RENTAL_ID, R.BOOK_ID, R.IS_EXTENDED, R.STATE, R.ARREAR, R.MEMBER_ID,
+                B.BOOK_NAME, B.WRITER, B.PUBLISHER
+        FROM RENTAL R, BOOKS B
+        WHERE R.BOOK_ID = B.BOOK_ID
+        AND MEMBER_ID = #{member_id} ORDER BY RETURN_DEADLINE DESC
+    </select>
+
+    <!-- 대여한 도서 연장-->
+    <update id="extendUpdate" parameterType="rentalVO">
+        UPDATE RENTAL SET IS_EXTENDED = IS_EXTENDED + 1,
+                         RETURN_DEADLINE = RETURN_DEADLINE + 7
+        WHERE RENTAL_ID = #{rental_id}
+    </update>
+    <!-- 도서 반납하기-->
+    <update id="returnUpdate" parameterType="rentalVO">
+        UPDATE RENTAL
+           SET RETURN_DATE = SYSDATE,
+                STATE = '반납처리중'
+        WHERE RENTAL_ID = #{rental_id}
+    </update>
+<!--</mapper>
+
+<mapper namespace="com.group.books.repos.MyPageDAO">
+<resultMap id="memberResult" type="memberVO">
+    <result property="member_id" column="member_id" />
+    <result property="id" column="id" />
+    <result property="name" column="name" />
+    <result property="password" column="password" />
+    <result property="address" column="address" />
+    <result property="phone" column="phone" />
+</resultMap>-->
+
+    <!--============================================-->
+    <!--비밀번호 맞는지체크 -->
+    <select id="pwLogin" parameterType="memberVO" resultType="memberVO">
+        SELECT * FROM MEMBER
+         WHERE MEMBER_ID = #{member_id} AND PASSWORD = #{password}
+    </select>
+
+    <!-- 회원 정보 조회(관리자 매퍼랑 id 겹치지않는지 확인)**********로긴받고 멤버아이디 변경-->
+    <select id="getMyInfo" parameterType="memberVO" resultType="memberVO">
+        SELECT * FROM MEMBER WHERE MEMBER_ID = #{member_id}
+    </select>
+
+    <!--회원 정보 수정 (쿼리 수정 필요)-->
+    <update id="myInfoUpdate" parameterType="memberVO">
+        UPDATE MEMBER
+        SET ADDRESS = #{address}, EMAIL = #{email}, PHONE = #{phone}, PASSWORD = #{password}
+        WHERE MEMBER_ID = #{member_id}
+    </update>
+</mapper>

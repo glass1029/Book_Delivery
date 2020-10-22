@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.MyWriteDAO">
+
+    <select id="getCommentsList" resultType="commentsVO" parameterType="commentsVO">
+        SELECT C.CONTENT, TO_CHAR(C.REGDATE, 'YYYY.MM.DD HH24:MI') AS REGDATE
+        FROM COMMENTS C
+        JOIN MEMBER M
+        ON C.MEMBER_ID = M.MEMBER_ID
+        WHERE M.MEMBER_ID = #{member_id}
+    </select>
+
+    <select id="getCommunityList" resultType="communityVO" parameterType="communityVO">
+        SELECT C.COMMUNITY_ID, C.CATEGORY, C.TITLE,
+                TO_CHAR(C.REGDATE, 'YYYY.MM.DD HH24:MI') AS REGDATE
+            FROM COMMUNITY C
+            JOIN MEMBER M
+            ON C.MEMBER_ID=M.MEMBER_ID
+            WHERE M.MEMBER_ID = #{member_id}
+    </select>
+
+    <select id="getSuggestList" resultType="suggestVO" parameterType="suggestVO">
+        SELECT S.SUGGEST_ID, S.CATEGORY, S.TITLE,
+                TO_CHAR(S.REGDATE, 'YYYY.MM.DD HH24:MI') AS REGDATE
+            FROM SUGGEST S
+            JOIN MEMBER M
+            ON S.MEMBER_ID=M.MEMBER_ID
+            WHERE M.MEMBER_ID = #{member_id}
+    </select>
+
+</mapper>

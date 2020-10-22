@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.BookReviewDAO">
+
+<!-- 상세보기 -->
+<select id="getbookReview" parameterType="CommunityVO" resultType="CommunityVO">
+		
+	SELECT C.*, B.BOOK_NAME FROM COMMUNITY C, BOOKS B
+    
+    	WHERE C.BOOK_ID = B.BOOK_ID
+    	
+    	AND C.COMMUNITY_ID = #{community_id}
+     	
+ 	
+ 		<!-- SELECT C.COMMUNITY_ID, B.BOOK_NAME
+    
+	    FROM COMMUNITY C, BOOKS B
+	    
+    	WHERE C.BOOK_ID = B.BOOK_ID  -->
+ 		
+</select>
+<!-- 글 삭제 -->
+ <delete id = "deleteCommunity" parameterType="CommunityVO">
+ 
+ 	DELETE FROM COMMUNITY WHERE COMMUNITY_ID=#{community_id}
+ 
+ </delete>
+ <!-- 글수정 -->
+  <update id = "updateCommunity" parameterType="CommunityVO" >
+ 
+ 	UPDATE COMMUNITY 
+ 	
+ 	SET 
+ 	
+ 	TITLE = #{title},
+ 	SCORE = #{score},
+ 	CONTENT = #{content},
+ 	REVIEW = #{review}
+ 	
+ 	WHERE COMMUNITY_ID= #{community_id}
+ 
+ </update>
+ 
+ <!-- 공지사항 조회수 -->
+<update id = "updateReviewHit" parameterType="CommunityVO">
+	UPDATE COMMUNITY
+    SET HIT = HIT + 1
+    WHERE COMMUNITY_ID = #{community_id}
+</update>
+
+	<!--커뮤니티 게시글 댓글 조회-->
+	<select id="getCommentList" resultType="commentsVO" parameterType="communityVO">
+        SELECT C.COMMENT_ID, C.COMMUNITY_ID, C.CONTENT, C.REGDATE, M.ID
+        FROM COMMENTS C, MEMBER M
+        WHERE C.MEMBER_ID = M.MEMBER_ID
+        AND C.COMMUNITY_ID = #{community_id}
+        ORDER BY C.COMMENT_ID DESC
+    </select>
+
+	<!--커뮤니티 게시글 댓글 삭제-->
+	<delete id="deleteComment" parameterType="commentsVO">
+        DELETE FROM COMMENTS WHERE COMMENT_ID = #{comment_id}
+    </delete>
+
+	<!--커뮤니티 게시글 댓글 입력-->
+	<insert id="insertComment" parameterType="commentsVO">
+        INSERT INTO COMMENTS (COMMENT_ID, COMMUNITY_ID, MEMBER_ID, CONTENT, REGDATE)
+        VALUES(COMMENTS_SEQ.NEXTVAL, 1, 2, '좋아요!', SYSDATE)
+    </insert>
+
+</mapper>

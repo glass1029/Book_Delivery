@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.BooksDAO">
+    <!--도서 데이터 조회-->
+    <select id="getBooksList" resultType="BooksVO" parameterType="BooksVO">
+        SELECT * FROM (
+        SELECT ROW_NUMBER() OVER (ORDER BY B.BOOK_NAME) CNTPERPAGE, B.*
+        FROM BOOKS B
+        <choose>
+            <when test="searchCondition == 'book_name'">
+                WHERE BOOK_NAME LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'writer'">
+                WHERE WRITER LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'publisher'">
+                WHERE PUBLISHER LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ) WHERE CNTPERPAGE BETWEEN #{startIndex}+1 AND (#{startIndex} + #{cntPerPage})
+    </select>
+
+    <!--도서 데이터 수-->
+    <select id="getBooksCount" resultType="java.lang.Integer" parameterType="BooksVO">
+        SELECT COUNT(*) FROM BOOKS
+        <choose>
+            <when test="searchCondition == 'book_name'">
+                WHERE BOOK_NAME LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'writer'">
+                WHERE WRITER LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'publisher'">
+                WHERE PUBLISHER LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ORDER BY BOOK_NAME
+    </select>
+
+    <!--도서 정보 상세보기-->
+    <select id="getOneBook" resultType="BooksVO" parameterType="booksVO">
+        SELECT * FROM BOOKS WHERE BOOK_ID = #{book_id}
+    </select>
+
+    <!--도서 평점 평균-->
+    <select id="getScore" resultType="BooksVO" parameterType="booksVO">
+        SELECT TRUNC(AVG(C.SCORE), 2) AS SCORE FROM BOOKS B, COMMUNITY C
+        WHERE B.BOOK_ID = #{book_id} AND B.BOOK_ID = C.BOOK_ID GROUP BY B.BOOK_ID
+    </select>
+
+    <!--도서 리뷰 목록-->
+    <select id="getReviews" resultType="BooksVO" parameterType="booksVO">
+        SELECT C.REVIEW FROM BOOKS B, COMMUNITY C WHERE B.BOOK_ID = #{book_id} AND B.BOOK_ID = C.BOOK_ID
+    </select>
+
+    <!--도서 대출 상태, 반납 예상일-->
+    <select id="getState" resultType="RentalVO" parameterType="booksVO">
+        SELECT STATE, TO_CHAR(RETURN_DEADLINE, 'YYYY.MM.DD') AS RETURN_DEADLINE
+        FROM (SELECT * FROM RENTAL WHERE BOOK_ID = #{book_id} ORDER BY RENTAL_ID DESC) WHERE ROWNUM = 1
+    </select>
+
+    <!--회원이 대출 중인 도서 권수 카운트-->
+    <select id="getRentalCnt" resultType="java.lang.Integer" parameterType="rentalVO">
+        SELECT COUNT(*) FROM RENTAL WHERE MEMBER_ID = #{member_id} AND STATE IN ('대출중')
+    </select>
+
+    <!--도서 대출-->
+    <insert id="insertRental" parameterType="rentalVO">
+        INSERT INTO RENTAL (RENTAL_ID, BOOK_ID, RENTAL_DATE, RETURN_DEADLINE, IS_EXTENDED, STATE, ARREAR, MEMBER_ID, RETURN_DATE)
+        VALUES (RENTAL_SEQ.NEXTVAL, #{book_id}, SYSDATE, SYSDATE+14, 0, '대출중', 0, #{member_id}, null)
+    </insert>
+</mapper>

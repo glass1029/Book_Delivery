@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.MemberDAO">
+    <!--멤버 데이터 조회-->
+    <select id="getMemberList" resultType="MemberVO" parameterType="MemberVO">
+        SELECT  M.* FROM MEMBER M
+    </select>
+
+    <!--멤버 데이터 수-->
+    <select id="getMemberCount" resultType="java.lang.Integer" parameterType="MemberVO">
+        SELECT COUNT(*) FROM MEMBER
+        <choose>
+            <when test="searchCondition == 'ID'">
+                WHERE ID LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'NAME'">
+                WHERE NAME LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'PHONE'">
+                WHERE PHONE LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ORDER BY ID
+    </select>
+
+    <!--멤버 정보 상세보기-->
+    <select id="getOneMember" resultType="MemberVO" parameterType="MemberVO">
+        SELECT * FROM MEMBER WHERE MEMBER_ID = #{member_id}
+    </select>
+
+    <!--멤버가 빌린 책 보기-->
+    <select id="getBook_name" resultType="MemberVO" parameterType="MemberVO">
+       SELECT B.BOOK_NAME
+    FROM BOOKS B LEFT OUTER JOIN RENTAL R ON B.BOOK_ID = R.BOOK_ID
+	LEFT OUTER JOIN MEMBER M ON R.MEMBER_ID = M.MEMBER_ID
+    WHERE M.MEMBER_ID = #{member_id}
+    </select>
+</mapper>

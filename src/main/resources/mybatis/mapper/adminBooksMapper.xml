@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.group.books.repos.AdminBooksDAO">
+
+    <select id="getAdminBooksList" resultType="BooksVO" parameterType="BooksVO">
+        SELECT N.*,R.STATE, R.RETURN_DEADLINE, R.IS_EXTENDED, R.ARREAR, R.MEMBER_ID, M.NAME
+        FROM NOW_RENTAL N
+        JOIN RENTAL R
+        ON N.RENTAL_ID=R.RENTAL_ID
+        JOIN MEMBER M
+        ON M.MEMBER_ID=R.MEMBER_ID
+    </select>
+
+
+    <select id="getRentalList" resultType="RentalVO" parameterType="RentalVO">
+        SELECT *
+            FROM BOOKS B
+            JOIN RENTAL R
+            ON B.BOOK_ID=R.BOOK_ID
+            JOIN MEMBER M
+            ON R.MEMBER_ID=M.MEMBER_ID
+        WHERE STATE='대출중' OR STATE = '반납처리중'
+    </select>
+
+    <update id="updateBooks" parameterType="RentalVO">
+        UPDATE RENTAL
+        SET STATE = '반납완료'
+        WHERE RENTAL_ID=#{rental_id}
+    </update>
+
+    <select id="getAdminBooksCount" resultType="java.lang.Integer" parameterType="RentalVO">
+        SELECT COUNT (*)
+        FROM RENTAL R
+        JOIN BOOKS B
+        ON R.BOOK_ID=B.BOOK_ID
+        JOIN MEMBER M
+        ON R.MEMBER_ID=M.MEMBER_ID
+        <choose>
+            <when test="searchCondition == 'book_name'">
+                WHERE BOOK_NAME LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'name'">
+                WHERE NAME LIKE '%'||#{searchKeyword}||'%'
+            </when>
+            <when test="searchCondition == 'state'">
+                WHERE STATE LIKE '%'||#{searchKeyword}||'%'
+            </when>
+        </choose>
+        ORDER BY BOOK_NAME
+    </select>
+
+</mapper>
